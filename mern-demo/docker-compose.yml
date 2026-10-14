@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./server
+    container_name: mern-backend
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=5000
+      - MONGODB_URI=mongodb+srv://Nhut:Joker1tuoi%40@cluster0.yqdzn0h.mongodb.net/student_db?retryWrites=true&w=majority
+    networks:
+      - mern-network
+
+  frontend:
+    build: ../mern-student-app
+    container_name: mern-frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - mern-network
+
+networks:
+  mern-network:
+    driver: bridge
