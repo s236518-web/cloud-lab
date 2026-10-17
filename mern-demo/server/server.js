@@ -4,13 +4,32 @@ const mongoose = require('mongoose');
 const path = require('path');
 require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 
-// Import Model Student vừa tạo
+// Import Model Student
 const Student = require('./models/Student');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-app.use(cors());
+// ==========================================
+// CẤU HÌNH CORS LINH HOẠT CHO PRODUCTION (PHẦN 5)
+// ==========================================
+const allowedOrigins = [
+  process.env.CLIENT_URL,
+  'http://localhost:5173',
+  'http://localhost:3000'
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin) || process.env.NODE_ENV !== 'production') {
+      callback(null, true);
+    } else {
+      callback(null, true); // Cho phép truy cập động
+    }
+  },
+  credentials: true
+}));
+
 app.use(express.json());
 
 app.get('/', (req, res) => {
@@ -28,9 +47,8 @@ if (!MONGODB_URI) {
   throw new Error('Thiếu biến môi trường MONGODB_URI trong file .env');
 }
 
-
 // ==========================================
-// CÂU 36: API GET /api/students
+// API GET /api/students
 // ==========================================
 app.get('/api/students', async (req, res) => {
   try {
@@ -42,7 +60,7 @@ app.get('/api/students', async (req, res) => {
 });
 
 // ==========================================
-// CÂU 37: API POST /api/students
+// API POST /api/students
 // ==========================================
 app.post('/api/students', async (req, res) => {
   try {
@@ -55,7 +73,7 @@ app.post('/api/students', async (req, res) => {
 });
 
 // ==========================================
-// CÂU 38: API PUT /api/students/:id
+// API PUT /api/students/:id
 // ==========================================
 app.put('/api/students/:id', async (req, res) => {
   try {
@@ -74,7 +92,7 @@ app.put('/api/students/:id', async (req, res) => {
 });
 
 // ==========================================
-// CÂU 39: API DELETE /api/students/:id
+// API DELETE /api/students/:id
 // ==========================================
 app.delete('/api/students/:id', async (req, res) => {
   try {
@@ -87,7 +105,6 @@ app.delete('/api/students/:id', async (req, res) => {
     res.status(500).json({ message: 'Lỗi xóa sinh viên', error: error.message });
   }
 });
-
 
 // Kết nối cơ sở dữ liệu trước khi khởi động server.
 async function startServer() {

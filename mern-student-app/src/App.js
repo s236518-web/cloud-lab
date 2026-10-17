@@ -10,19 +10,27 @@ function App() {
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  const apiUrl = '/api/students';
+  // Khai báo Base URL tới Backend Render
+  const apiUrl = import.meta.env.VITE_API_URL || "https://mern-backend-236518.onrender.com";
 
+  // 1. Hàm lấy danh sách sinh viên
   const fetchStudents = async () => {
     try {
-      const res = await fetch(apiUrl);
-      if (!res.ok) {
-        throw new Error('Không thể tải dữ liệu sinh viên');
-      }
+      setLoading(true);
+      const res = await fetch(`${apiUrl}/api/students`);
       const data = await res.json();
-      setStudents(data);
+
+      if (Array.isArray(data)) {
+        setStudents(data);
+      } else if (Array.isArray(data.data)) {
+        setStudents(data.data);
+      } else {
+        setStudents([]);
+      }
     } catch (err) {
-      console.error('Lỗi khi lấy dữ liệu:', err);
-      setError('Không thể kết nối tới máy chủ. Vui lòng kiểm tra backend.');
+      console.error("Lỗi fetch:", err);
+      setError("Không thể tải danh sách sinh viên");
+      setStudents([]);
     } finally {
       setLoading(false);
     }
@@ -42,6 +50,7 @@ function App() {
     setError('');
   };
 
+  // 2. Hàm Thêm / Sửa sinh viên (ĐÃ SỬA ĐÚNG URL /api/students)
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -54,7 +63,8 @@ function App() {
     setError('');
 
     try {
-      const url = editingId ? `${apiUrl}/${editingId}` : apiUrl;
+      // Đã bổ sung chính xác endpoint /api/students
+      const url = editingId ? `${apiUrl}/api/students/${editingId}` : `${apiUrl}/api/students`;
       const method = editingId ? 'PUT' : 'POST';
 
       const res = await fetch(url, {
@@ -90,12 +100,13 @@ function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  // 3. Hàm Xóa sinh viên (ĐÃ SỬA ĐÚNG URL /api/students)
   const handleDelete = async (id) => {
     const confirmed = window.confirm('Bạn chắc chắn muốn xóa sinh viên này?');
     if (!confirmed) return;
 
     try {
-      const res = await fetch(`${apiUrl}/${id}`, { method: 'DELETE' });
+      const res = await fetch(`${apiUrl}/api/students/${id}`, { method: 'DELETE' });
       const result = await res.json();
 
       if (!res.ok) {
@@ -118,7 +129,7 @@ function App() {
         <header style={styles.header}>
           <div>
             <p style={styles.eyebrow}>Quản lý sinh viên</p>
-            <h1 style={styles.title}>Lý sinh viên</h1>
+            <h1 style={styles.title}>Quản lý sinh viên</h1>
           </div>
           <span style={styles.badge}>{students.length} sinh viên</span>
         </header>
@@ -187,7 +198,7 @@ function App() {
               <div style={styles.list}>
                 {students.map((student) => (
                   <div key={student._id} style={styles.studentCard}>
-                    <div style={styles.avatar}>{student.name.charAt(0).toUpperCase()}</div>
+                    <div style={styles.avatar}>{student.name ? student.name.charAt(0).toUpperCase() : 'S'}</div>
 
                     <div style={styles.studentInfo}>
                       <strong style={styles.studentName}>{student.name}</strong>
